@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { db } from '@/lib/db';
+import { db, createUser } from '@/lib/db';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;
@@ -19,12 +20,40 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      // Check for default admin credentials
+      if (email === 'admin' && password === 'admin123') {
+        // Create or find admin user
+        let adminUser = await db.users.where('email').equals('admin@smarttodo.com').first();
+        if (!adminUser) {
+          adminUser = await createUser({
+            username: 'Admin',
+            email: 'admin@smarttodo.com',
+            passwordHash: btoa('admin123'),
+            settings: {
+              theme: 'light',
+              notificationSounds: true,
+              defaultCategory: 'work'
+            }
+          });
+        }
+        
+        login(adminUser);
+        toast({
+          title: "Admin Login Successful!",
+          description: "Welcome to the admin dashboard.",
+        });
+        navigate('/admin');
+        return;
+      }
+
+      // Regular user login
       const user = await db.users.where('email').equals(email).first();
       if (user && user.passwordHash === btoa(password)) {
         login(user);
@@ -32,6 +61,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
           title: "Welcome back!",
           description: "You've been successfully logged in.",
         });
+        navigate('/');
       } else {
         toast({
           title: "Login failed",
@@ -48,6 +78,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleAdminLogin = () => {
+    setEmail('admin');
+    setPassword('admin123');
   };
 
   return (
@@ -70,7 +105,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
             <Label htmlFor="email" className="text-white text-sm md:text-base">Email</Label>
             <Input
               id="email"
-              type="email"
+              type="text"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -90,13 +125,23 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
               className="bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:bg-white/30 transition-all duration-300"
             />
           </div>
-          <Button 
-            type="submit" 
-            className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30 transition-all duration-300 text-sm md:text-base py-2 md:py-3" 
-            disabled={isLoading}
-          >
-            {isLoading ? 'Signing in...' : 'Sign in'}
-          </Button>
+          
+          <div className="flex gap-2">
+            <Button 
+              type="submit" 
+              className="flex-1 bg-white/20 hover:bg-white/30 text-white border border-white/30 transition-all duration-300 text-sm md:text-base py-2 md:py-3" 
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing in...' : 'Sign in'}
+            </Button>
+            <Button 
+              type="button"
+              onClick={handleAdminLogin}
+              className="bg-orange-500/80 hover:bg-orange-600/90 text-white border border-orange-400/50 transition-all duration-300 text-sm md:text-base py-2 md:py-3 px-4" 
+            >
+              Admin
+            </Button>
+          </div>
         </form>
         
         <div className="text-center text-sm md:text-base">

@@ -1,30 +1,125 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
 import { TaskList } from '@/components/admin/TaskList';
-import { Users, Target, TrendingUp, Settings, BarChart3, Activity, Shield, Database, Moon, Sun, ArrowLeft } from 'lucide-react';
+import { Users, Target, TrendingUp, Settings, BarChart3, Activity, Shield, Database, Moon, Sun, ArrowLeft, Plus, Download, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { db } from '@/lib/db';
+import { generateSampleData } from '@/lib/sampleData';
+import { useToast } from '@/hooks/use-toast';
 
 export const AdminDashboard: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const adminStats = [
-    { title: 'Total Users', value: '1,234', change: '+12%', icon: Users, color: 'from-blue-500 to-cyan-500' },
-    { title: 'Active Tasks', value: '5,678', change: '+8%', icon: Target, color: 'from-green-500 to-emerald-500' },
-    { title: 'Completion Rate', value: '87%', change: '+5%', icon: TrendingUp, color: 'from-purple-500 to-pink-500' },
-    { title: 'System Load', value: '23%', change: '-3%', icon: Activity, color: 'from-orange-500 to-red-500' },
-  ];
+  const { data: adminStats, refetch } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: async () => {
+      const users = await db.users.toArray();
+      const tasks = await db.tasks.toArray();
+      const completedTasks = tasks.filter(task => task.status === 'completed');
+      const activeTasks = tasks.filter(task => task.status !== 'completed' && task.status !== 'archived');
+      
+      return {
+        totalUsers: users.length,
+        activeTasks: activeTasks.length,
+        completionRate: tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0,
+        systemLoad: Math.floor(Math.random() * 40) + 10
+      };
+    },
+  });
+
+  const handleGenerateSampleData = async () => {
+    try {
+      await generateSampleData();
+      await refetch();
+      toast({
+        title: "Sample Data Generated",
+        description: "Sample users and tasks have been created successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate sample data.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportData = () => {
+    toast({
+      title: "Export Started",
+      description: "Data export functionality will be implemented soon.",
+    });
+  };
 
   const quickActions = [
-    { title: 'User Management', icon: Users, color: 'bg-blue-500' },
-    { title: 'System Settings', icon: Settings, color: 'bg-gray-500' },
-    { title: 'Analytics', icon: BarChart3, color: 'bg-green-500' },
-    { title: 'Security', icon: Shield, color: 'bg-red-500' },
-    { title: 'Database', icon: Database, color: 'bg-purple-500' },
+    { 
+      title: 'User Management', 
+      icon: Users, 
+      color: 'bg-blue-500',
+      onClick: () => toast({ title: 'Coming Soon', description: 'User management feature will be available soon.' })
+    },
+    { 
+      title: 'System Settings', 
+      icon: Settings, 
+      color: 'bg-gray-500',
+      onClick: () => toast({ title: 'Coming Soon', description: 'System settings feature will be available soon.' })
+    },
+    { 
+      title: 'Analytics', 
+      icon: BarChart3, 
+      color: 'bg-green-500',
+      onClick: () => toast({ title: 'Coming Soon', description: 'Analytics dashboard will be available soon.' })
+    },
+    { 
+      title: 'Security', 
+      icon: Shield, 
+      color: 'bg-red-500',
+      onClick: () => toast({ title: 'Coming Soon', description: 'Security settings will be available soon.' })
+    },
+    { 
+      title: 'Database', 
+      icon: Database, 
+      color: 'bg-purple-500',
+      onClick: () => toast({ title: 'Coming Soon', description: 'Database management will be available soon.' })
+    },
+  ];
+
+  const statsConfig = [
+    { 
+      title: 'Total Users', 
+      value: adminStats?.totalUsers || 0, 
+      change: '+12%', 
+      icon: Users, 
+      color: 'from-blue-500 to-cyan-500' 
+    },
+    { 
+      title: 'Active Tasks', 
+      value: adminStats?.activeTasks || 0, 
+      change: '+8%', 
+      icon: Target, 
+      color: 'from-green-500 to-emerald-500' 
+    },
+    { 
+      title: 'Completion Rate', 
+      value: `${adminStats?.completionRate || 0}%`, 
+      change: '+5%', 
+      icon: TrendingUp, 
+      color: 'from-purple-500 to-pink-500' 
+    },
+    { 
+      title: 'System Load', 
+      value: `${adminStats?.systemLoad || 0}%`, 
+      change: '-3%', 
+      icon: Activity, 
+      color: 'from-orange-500 to-red-500' 
+    },
   ];
 
   return (
@@ -70,18 +165,40 @@ export const AdminDashboard: React.FC = () => {
             </motion.div>
           </div>
 
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleTheme}
-            className="bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 transition-all duration-300"
-          >
-            {theme === 'light' ? (
-              <Moon className="h-4 w-4" />
-            ) : (
-              <Sun className="h-4 w-4" />
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateSampleData}
+              className="bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 transition-all duration-300 hidden md:flex"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Generate Data
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportData}
+              className="bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 transition-all duration-300 hidden md:flex"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleTheme}
+              className="bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 transition-all duration-300"
+            >
+              {theme === 'light' ? (
+                <Moon className="h-4 w-4" />
+              ) : (
+                <Sun className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -91,7 +208,7 @@ export const AdminDashboard: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8"
         >
-          {adminStats.map((stat, index) => (
+          {statsConfig.map((stat, index) => (
             <motion.div
               key={stat.title}
               initial={{ opacity: 0, y: 20 }}
@@ -148,6 +265,7 @@ export const AdminDashboard: React.FC = () => {
               >
                 <Button
                   variant="outline"
+                  onClick={action.onClick}
                   className="h-20 md:h-24 w-full flex flex-col items-center justify-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-white/20 dark:border-gray-700/50 hover:bg-white dark:hover:bg-gray-700 transition-all duration-300 text-xs md:text-sm"
                 >
                   <action.icon className="h-5 w-5 md:h-6 md:w-6" />
@@ -177,30 +295,41 @@ export const AdminDashboard: React.FC = () => {
           >
             <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-white/20 dark:border-gray-700/50">
               <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Recent Activity</CardTitle>
+                <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Recent Activity
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                   {[
-                    { user: 'John Doe', action: 'completed 5 tasks', time: '2 minutes ago' },
-                    { user: 'Jane Smith', action: 'created new project', time: '15 minutes ago' },
-                    { user: 'Mike Johnson', action: 'updated profile', time: '1 hour ago' },
-                    { user: 'Sarah Wilson', action: 'deleted task', time: '2 hours ago' },
+                    { user: 'John Doe', action: 'completed 5 tasks', time: '2 minutes ago', type: 'success' },
+                    { user: 'Jane Smith', action: 'created new project', time: '15 minutes ago', type: 'info' },
+                    { user: 'Mike Johnson', action: 'updated profile', time: '1 hour ago', type: 'warning' },
+                    { user: 'Sarah Wilson', action: 'deleted task', time: '2 hours ago', type: 'error' },
+                    { user: 'Admin', action: 'exported user data', time: '3 hours ago', type: 'info' },
                   ].map((activity, index) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.4, delay: index * 0.1 }}
-                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                     >
-                      <div className="flex-1 min-w-0">
-                        <span className="font-medium text-gray-900 dark:text-white block truncate">
-                          {activity.user}
-                        </span>
-                        <span className="text-gray-600 dark:text-gray-400 text-sm block truncate">
-                          {activity.action}
-                        </span>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${
+                          activity.type === 'success' ? 'bg-green-500' :
+                          activity.type === 'warning' ? 'bg-yellow-500' :
+                          activity.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                        }`} />
+                        <div className="flex-1 min-w-0">
+                          <span className="font-medium text-gray-900 dark:text-white block truncate">
+                            {activity.user}
+                          </span>
+                          <span className="text-gray-600 dark:text-gray-400 text-sm block truncate">
+                            {activity.action}
+                          </span>
+                        </div>
                       </div>
                       <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap ml-2">
                         {activity.time}
