@@ -35,8 +35,8 @@ export const TaskList: React.FC = () => {
     }
   };
 
-  const getStatusIcon = (completed: boolean) => {
-    return completed ? (
+  const getStatusIcon = (status: string) => {
+    return status === 'completed' ? (
       <CheckCircle className="h-4 w-4 text-green-500" />
     ) : (
       <Clock className="h-4 w-4 text-orange-500" />
@@ -89,7 +89,7 @@ export const TaskList: React.FC = () => {
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      {getStatusIcon(task.completed)}
+                      {getStatusIcon(task.status)}
                       <h3 className="font-medium text-gray-900 dark:text-white truncate">
                         {task.title}
                       </h3>
@@ -121,8 +121,8 @@ export const TaskList: React.FC = () => {
                       {task.priority || 'low'}
                     </Badge>
                     
-                    <Badge variant={task.completed ? 'default' : 'secondary'}>
-                      {task.completed ? 'Completed' : 'Pending'}
+                    <Badge variant={task.status === 'completed' ? 'default' : 'secondary'}>
+                      {task.status === 'completed' ? 'Completed' : task.status}
                     </Badge>
                   </div>
                 </div>
