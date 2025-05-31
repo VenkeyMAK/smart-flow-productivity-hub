@@ -55,7 +55,7 @@ export const Auth: React.FC = () => {
 
       {/* Theme Toggle Button */}
       <motion.div 
-        className="absolute top-6 right-6 z-10"
+        className="absolute top-4 right-4 z-10 md:top-6 md:right-6"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
       >
@@ -63,26 +63,26 @@ export const Auth: React.FC = () => {
           variant="outline"
           size="icon"
           onClick={toggleTheme}
-          className="bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 transition-all duration-300"
+          className="bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 transition-all duration-300 w-10 h-10 md:w-12 md:h-12"
         >
           {theme === 'light' ? (
-            <Moon className="h-4 w-4 text-white" />
+            <Moon className="h-4 w-4 md:h-5 md:w-5 text-white" />
           ) : (
-            <Sun className="h-4 w-4 text-white" />
+            <Sun className="h-4 w-4 md:h-5 md:w-5 text-white" />
           )}
         </Button>
       </motion.div>
 
-      <div className="relative z-10 min-h-screen flex items-center justify-center">
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-md">
           <motion.div 
-            className="text-center mb-8"
+            className="text-center mb-6 md:mb-8"
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <motion.h1 
-              className="text-5xl font-bold bg-gradient-to-r from-white via-cyan-200 to-blue-200 bg-clip-text text-transparent mb-4"
+              className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-white via-cyan-200 to-blue-200 bg-clip-text text-transparent mb-2 md:mb-4"
               animate={{
                 backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
               }}
@@ -98,7 +98,7 @@ export const Auth: React.FC = () => {
               SmartToDo+
             </motion.h1>
             <motion.p 
-              className="text-white/80 text-lg font-medium"
+              className="text-white/80 text-base md:text-lg font-medium"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.6 }}
@@ -111,7 +111,7 @@ export const Auth: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
-            className="backdrop-blur-xl bg-white/10 dark:bg-black/10 rounded-2xl border border-white/20 shadow-2xl p-8"
+            className="backdrop-blur-xl bg-white/10 dark:bg-black/10 rounded-2xl border border-white/20 shadow-2xl p-6 md:p-8"
           >
             {isLogin ? (
               <LoginForm onSwitchToRegister={() => setIsLogin(false)} />
